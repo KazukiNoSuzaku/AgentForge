@@ -12,6 +12,7 @@ via asyncio so Streamlit's main thread stays responsive.
 from __future__ import annotations
 
 import asyncio
+import html
 import threading
 import time
 from datetime import datetime
@@ -182,7 +183,7 @@ def run_pipeline_in_thread(query: str, queue: Queue) -> None:
         initial_state = create_initial_state(query)
 
         try:
-            for update in graph.stream(
+            async for update in graph.astream(
                 initial_state,
                 config={"recursion_limit": 25},
             ):
@@ -275,12 +276,15 @@ def render_thinking_steps(steps: list) -> None:
                     "critic": "red",
                 }.get(step.agent, "gray")
 
+                safe_agent = html.escape(step.agent.upper())
+                safe_action = html.escape(step.action)
+                safe_content = html.escape(step.content)
                 st.markdown(
                     f"""
                     <div class="thinking-step">
-                        <strong style="color:{agent_color}">{step.agent.upper()}</strong>
-                        → <em>{step.action}</em><br/>
-                        {step.content}
+                        <strong style="color:{agent_color}">{safe_agent}</strong>
+                        → <em>{safe_action}</em><br/>
+                        {safe_content}
                     </div>
                     """,
                     unsafe_allow_html=True,
@@ -436,6 +440,7 @@ def main() -> None:
                     f"⏳ **{current.capitalize()} agent** is working... "
                     f"(this may take 30-60 seconds per agent)"
                 )
+            time.sleep(0.5)  # Avoid tight polling loop
             st.rerun()  # Trigger refresh to drain queue again
 
     # ------------------------------------------------------------------ #
@@ -468,7 +473,7 @@ def main() -> None:
     st.markdown(
         "<div style='text-align:center; color:#6c757d; font-size:0.8rem;'>"
         "AgentForge · Built with LangGraph, MCP, Anthropic Claude · "
-        "<a href='https://github.com/yourusername/AgentForge'>GitHub</a>"
+        "<a href='https://github.com/KazukiNoSuzaku/AgentForge'>GitHub</a>"
         "</div>",
         unsafe_allow_html=True,
     )

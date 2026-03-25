@@ -11,7 +11,7 @@ The LLMManager class abstracts all LLM interactions, providing:
 from __future__ import annotations
 
 import logging
-from typing import List, Optional, Type, TypeVar
+from typing import Any, List, Optional, Type, TypeVar
 
 from langchain_anthropic import ChatAnthropic
 from langchain_core.language_models import BaseChatModel
@@ -74,6 +74,29 @@ class LLMManager:
         return self._fallback
 
     # ------------------------------------------------------------------ #
+    # Content Extraction
+    # ------------------------------------------------------------------ #
+
+    @staticmethod
+    def _extract_text(content: Any) -> str:
+        """
+        Normalise AIMessage.content to a plain string.
+
+        ChatAnthropic can return a list of content blocks (e.g. when
+        extended thinking is enabled) instead of a plain string. This
+        method handles both forms.
+        """
+        if isinstance(content, str):
+            return content
+        if isinstance(content, list):
+            return "".join(
+                block["text"]
+                for block in content
+                if isinstance(block, dict) and block.get("type") == "text"
+            )
+        return str(content)
+
+    # ------------------------------------------------------------------ #
     # Invocation Helpers
     # ------------------------------------------------------------------ #
 
@@ -96,7 +119,7 @@ class LLMManager:
         primary_error = None
         try:
             response = await self.primary.ainvoke(messages)
-            return response.content
+            return self._extract_text(response.content)
         except Exception as primary_err:
             primary_error = primary_err
             logger.warning(
@@ -115,7 +138,7 @@ class LLMManager:
         try:
             response = await self.fallback.ainvoke(messages)
             logger.info("Fallback LLM (%s) succeeded.", self._config.openai_model)
-            return response.content
+            return self._extract_text(response.content)
         except Exception as fallback_err:
             raise RuntimeError(
                 f"Both LLMs failed. "

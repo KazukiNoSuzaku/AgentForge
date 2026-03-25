@@ -154,8 +154,8 @@ async def run_research(
     final_report = None
 
     try:
-        # stream() yields {node_name: state_delta} for each completed node
-        for update in graph.stream(
+        # astream() yields {node_name: state_delta} for each completed node
+        async for update in graph.astream(
             initial_state,
             config={"recursion_limit": 20},
         ):

@@ -234,7 +234,11 @@ async def search_wikipedia(
         "search_wikipedia",
         {"query": query, "num_results": 3},
     )
-    search_data = json.loads(search_raw) if search_raw else {}
+    try:
+        search_data = json.loads(search_raw) if search_raw else {}
+    except json.JSONDecodeError:
+        logger.warning("Wikipedia search returned invalid JSON: %.200s", search_raw)
+        search_data = {}
     titles = search_data.get("results", [])
 
     if not titles:

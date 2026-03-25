@@ -10,6 +10,7 @@ Run standalone for testing:
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import sys
@@ -96,7 +97,8 @@ async def search_papers(
 
     results = []
     try:
-        for paper in client.results(search):
+        papers = await asyncio.to_thread(lambda: list(client.results(search)))
+        for paper in papers:
             results.append(
                 {
                     "arxiv_id": paper.entry_id,
@@ -136,7 +138,11 @@ async def get_paper(arxiv_id: str) -> str:
     client = arxiv.Client()
     search = arxiv.Search(id_list=[paper_id])
 
-    results = list(client.results(search))
+    try:
+        results = await asyncio.to_thread(lambda: list(client.results(search)))
+    except Exception as exc:
+        return json.dumps({"error": f"arXiv lookup failed: {exc}"})
+
     if not results:
         return json.dumps({"error": f"Paper '{arxiv_id}' not found on arXiv"})
 
@@ -185,19 +191,25 @@ async def search_papers_by_author(
     )
 
     results = []
-    for paper in client.results(search):
-        results.append(
-            {
-                "arxiv_id": paper.entry_id,
-                "title": paper.title,
-                "authors": [a.name for a in paper.authors],
-                "abstract": paper.summary[:500] + "..."
-                if len(paper.summary) > 500
-                else paper.summary,
-                "published": paper.published.isoformat() if paper.published else None,
-                "url": paper.entry_id,
-            }
-        )
+    try:
+        papers = await asyncio.to_thread(lambda: list(client.results(search)))
+        for paper in papers:
+            results.append(
+                {
+                    "arxiv_id": paper.entry_id,
+                    "title": paper.title,
+                    "authors": [a.name for a in paper.authors],
+                    "abstract": paper.summary[:500] + "..."
+                    if len(paper.summary) > 500
+                    else paper.summary,
+                    "published": paper.published.isoformat() if paper.published else None,
+                    "url": paper.entry_id,
+                }
+            )
+    except arxiv.UnexpectedEmptyPageError:
+        logger.warning("arXiv returned an empty page for author: '%s'", author_name)
+    except Exception as exc:
+        logger.warning("arXiv author search failed: %s", exc)
 
     return json.dumps(results, indent=2, ensure_ascii=False)
 

@@ -81,7 +81,7 @@ async def search_web(
 
     params: Dict[str, Any] = {
         "q": query,
-        "count": min(count, 20),
+        "count": min(max(count, 1), 20),
         "country": country,
         "search_lang": search_lang,
         "text_decorations": False,
@@ -102,7 +102,10 @@ async def search_web(
             params=params,
             headers=headers,
         )
-        response.raise_for_status()
+        try:
+            response.raise_for_status()
+        except httpx.HTTPStatusError as exc:
+            return json.dumps({"error": f"Brave Search API returned {exc.response.status_code}"})
         data = response.json()
 
     results: List[Dict[str, Any]] = []
@@ -148,7 +151,7 @@ async def search_news(
 
     params = {
         "q": query,
-        "count": min(count, 20),
+        "count": min(max(count, 1), 20),
         "country": country,
         "freshness": freshness,
     }
@@ -164,7 +167,10 @@ async def search_news(
             params=params,
             headers=headers,
         )
-        response.raise_for_status()
+        try:
+            response.raise_for_status()
+        except httpx.HTTPStatusError as exc:
+            return json.dumps({"error": f"Brave News API returned {exc.response.status_code}"})
         data = response.json()
 
     articles: List[Dict[str, Any]] = []
@@ -175,7 +181,7 @@ async def search_news(
                 "url": item.get("url", ""),
                 "description": item.get("description", ""),
                 "published_date": item.get("age", ""),
-                "source": item.get("meta_url", {}).get("netloc", ""),
+                "source": (item.get("meta_url") or {}).get("netloc", ""),
             }
         )
 

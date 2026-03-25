@@ -130,11 +130,12 @@ class CostTracker:
     def call_count(self) -> int:
         return len(self._calls)
 
-    def _calculate_cost(self, input_tokens: int, output_tokens: int) -> float:
-        """Calculate cost in USD for a given token count."""
-        input_cost = (input_tokens / 1_000_000) * self._pricing["input"]
-        output_cost = (output_tokens / 1_000_000) * self._pricing["output"]
-        return input_cost + output_cost
+    @staticmethod
+    def _calculate_cost(input_tokens: int, output_tokens: int, pricing: Dict[str, float]) -> float:
+        """Calculate cost in USD for a given token count and pricing."""
+        return (input_tokens / 1_000_000) * pricing["input"] + (
+            output_tokens / 1_000_000
+        ) * pricing["output"]
 
     def track_call(
         self,
@@ -159,9 +160,7 @@ class CostTracker:
         """
         call_model = model or self._model
         pricing = MODEL_PRICING.get(call_model, DEFAULT_PRICING)
-        cost = (input_tokens / 1_000_000) * pricing["input"] + (
-            output_tokens / 1_000_000
-        ) * pricing["output"]
+        cost = self._calculate_cost(input_tokens, output_tokens, pricing)
 
         record = LLMCallRecord(
             agent=agent,

@@ -99,7 +99,9 @@ async def get_article_summary(
         )
 
     except wiki_api.DisambiguationError as e:
-        # Disambiguation — pick the first option and recurse
+        # Disambiguation — pick the first option and retry
+        if not e.options:
+            return json.dumps({"error": f"Disambiguation for '{title}' with no options"})
         logger.info("Disambiguation for '%s': trying '%s'", title, e.options[0])
         first_option = e.options[0]
         try:

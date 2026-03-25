@@ -301,7 +301,7 @@ async def writer_node(state: ResearchState) -> dict:
     current_draft = state.get("draft_report", "")
     revision_count = state.get("revision_count", 0)
 
-    is_revision = bool(critic_feedback and current_draft and revision_count > 0)
+    is_revision = bool(critic_feedback and current_draft)
 
     thinking_step_start = ThinkingStep(
         agent="writer",
@@ -336,7 +336,7 @@ async def writer_node(state: ResearchState) -> dict:
             revision_number=revision_count,
         )
 
-        new_revision_count = revision_count + 1 if is_revision else revision_count
+        new_revision_count = revision_count + 1
 
         thinking_step_done = ThinkingStep(
             agent="writer",
