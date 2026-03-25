@@ -126,6 +126,7 @@ pytest tests/ -v --cov=src
 - Quality score: 0.82
 - Revisions: 0
 - Total time: ~90 seconds
+- **Estimated cost: ~$0.04** ([full cost analysis](docs/cost-analysis.md))
 
 ---
 
@@ -162,7 +163,8 @@ AgentForge/
 │   │
 │   └── utils/
 │       ├── llm.py             # LLMManager: Anthropic primary, OpenAI fallback
-│       └── citations.py       # Citation map building, bibliography formatting
+│       ├── citations.py       # Citation map building, bibliography formatting
+│       └── cost_tracker.py    # Per-agent token + cost tracking
 │
 ├── tests/
 │   ├── conftest.py            # Shared fixtures and mock data
@@ -174,10 +176,27 @@ AgentForge/
 │   └── test_graph.py
 │
 ├── examples/
-│   └── sample_output.md       # Full example report (EU/US/China AI regulation)
+│   ├── README.md              # Index of sample reports
+│   ├── sample_output.md       # Full example report (EU/US/China AI regulation)
+│   ├── sample_output_ai_regulation.md
+│   ├── sample_output_quantum_cryptography.md
+│   └── sample_output_remote_work.md
+│
+├── benchmarks/
+│   ├── README.md              # Benchmark methodology and results
+│   ├── run_benchmark.py       # Benchmark runner CLI
+│   ├── evaluate.py            # GPT-4-as-judge factual accuracy evaluation
+│   └── results/               # Benchmark result JSON files
 │
 └── docs/
-    └── architecture.md        # Design decisions and trade-off analysis
+    ├── architecture.md        # Design decisions and trade-off analysis
+    ├── cost-analysis.md       # Per-query cost breakdown and scaling projections
+    └── adr/                   # Architecture Decision Records
+        ├── 001-langgraph-over-crewai.md
+        ├── 002-mcp-protocol-for-tools.md
+        ├── 003-critic-revision-loop.md
+        ├── 004-pydantic-state-schema.md
+        └── 005-anthropic-primary-openai-fallback.md
 ```
 
 ---
