@@ -35,7 +35,7 @@ class TestBuildCitationReference:
     def test_deduplicates_same_url(self, sample_findings):
         # Add a duplicate
         dup = sample_findings[0].model_copy()
-        findings_with_dup = sample_findings + [dup]
+        findings_with_dup = [*sample_findings, dup]
         text = _build_citation_reference(findings_with_dup)
         # Counting [N] references: should not have [4] since there are only 3 unique URLs
         assert "[4]" not in text
@@ -99,7 +99,9 @@ class TestWriterAgent:
         human_content = next(
             m.content for m in messages if hasattr(m, "content") and "Critic Feedback" in m.content
         )
-        assert "unsupported_claims" in human_content.lower() or "Unsupported Claims" in human_content
+        assert (
+            "unsupported_claims" in human_content.lower() or "Unsupported Claims" in human_content
+        )
 
     @pytest.mark.asyncio
     async def test_write_always_injects_bibliography(
@@ -135,8 +137,9 @@ class TestWriterAgent:
         sample_critic_feedback_fail,
     ):
         """Revision mode should use WRITER_REVISION_PROMPT, not WRITER_SYSTEM_PROMPT."""
-        from src.agents.writer import WRITER_REVISION_PROMPT, WRITER_SYSTEM_PROMPT
         from langchain_core.messages import SystemMessage
+
+        from src.agents.writer import WRITER_REVISION_PROMPT
 
         mock_llm_manager.ainvoke.return_value = "# Revised Report\n\nContent."
 

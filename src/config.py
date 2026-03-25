@@ -162,7 +162,7 @@ class AppConfig(BaseSettings):
         return upper
 
     @model_validator(mode="after")
-    def warn_missing_optional_keys(self) -> "AppConfig":
+    def warn_missing_optional_keys(self) -> AppConfig:
         """Emit warnings for missing optional but recommended keys."""
         warnings = []
         if not self.brave_search_api_key:

@@ -182,9 +182,7 @@ class TestCriticNode:
         assert result["agent_statuses"]["critic"] == "done"
 
     @pytest.mark.asyncio
-    async def test_critic_node_triggers_revision(
-        self, sample_state, sample_critic_feedback_fail
-    ):
+    async def test_critic_node_triggers_revision(self, sample_state, sample_critic_feedback_fail):
         """When requires_revision=True, final_report should be empty."""
         with patch("src.agents.critic.CriticAgent") as MockAgent:
             mock_instance = MagicMock()

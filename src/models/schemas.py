@@ -13,7 +13,6 @@ from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel, Field
 
-
 # ---------------------------------------------------------------------------
 # Enumerations
 # ---------------------------------------------------------------------------
@@ -63,9 +62,7 @@ class ResearchPlan(BaseModel):
     sub_questions: List[SubQuestion] = Field(
         description="3-5 sub-questions covering all dimensions of the main query"
     )
-    research_approach: str = Field(
-        description="High-level description of the research strategy"
-    )
+    research_approach: str = Field(description="High-level description of the research strategy")
     estimated_complexity: Literal["low", "medium", "high"] = Field(
         description="Estimated complexity of the research task"
     )
@@ -139,21 +136,11 @@ class Claim(BaseModel):
 class AnalysisResult(BaseModel):
     """Structured output from the Analyst agent."""
 
-    patterns: List[str] = Field(
-        description="Cross-source patterns and recurring themes"
-    )
-    contradictions: List[str] = Field(
-        description="Identified contradictions between sources"
-    )
-    gaps: List[str] = Field(
-        description="Missing information not covered by the research"
-    )
-    claims: List[Claim] = Field(
-        description="Discrete, citable claims with confidence scores"
-    )
-    confidence_summary: str = Field(
-        description="Narrative summary of overall research confidence"
-    )
+    patterns: List[str] = Field(description="Cross-source patterns and recurring themes")
+    contradictions: List[str] = Field(description="Identified contradictions between sources")
+    gaps: List[str] = Field(description="Missing information not covered by the research")
+    claims: List[Claim] = Field(description="Discrete, citable claims with confidence scores")
+    confidence_summary: str = Field(description="Narrative summary of overall research confidence")
 
 
 # ---------------------------------------------------------------------------
@@ -170,9 +157,7 @@ class CitationEntry(BaseModel):
     source_type: SourceType
     authors: List[str] = Field(default_factory=list)
     published_date: Optional[str] = None
-    accessed_date: str = Field(
-        default_factory=lambda: datetime.now().strftime("%Y-%m-%d")
-    )
+    accessed_date: str = Field(default_factory=lambda: datetime.now().strftime("%Y-%m-%d"))
 
 
 class ReportSection(BaseModel):
@@ -218,9 +203,7 @@ class CriticFeedback(BaseModel):
     requires_revision: bool = Field(
         description="Whether the report should be sent back to the Writer"
     )
-    feedback_summary: str = Field(
-        description="Concise summary of feedback for the Writer agent"
-    )
+    feedback_summary: str = Field(description="Concise summary of feedback for the Writer agent")
     strengths: List[str] = Field(
         default_factory=list,
         description="Positive aspects of the report to preserve in revision",

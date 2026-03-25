@@ -30,9 +30,7 @@ class TestFormatFindingsForPrompt:
 
     def test_truncates_long_content(self, sample_findings):
         """Content longer than 600 chars should be truncated in the prompt."""
-        long_finding = sample_findings[0].model_copy(
-            update={"content": "x" * 1000}
-        )
+        long_finding = sample_findings[0].model_copy(update={"content": "x" * 1000})
         text = _format_findings_for_prompt([long_finding])
         # The formatted content block should not exceed 600 chars for this finding
         assert len(text) < 2000  # Reasonable upper bound
@@ -140,9 +138,7 @@ class TestAnalystNode:
     """Integration tests for the analyst_node LangGraph interface."""
 
     @pytest.mark.asyncio
-    async def test_analyst_node_returns_analysis_on_success(
-        self, sample_state, sample_analysis
-    ):
+    async def test_analyst_node_returns_analysis_on_success(self, sample_state, sample_analysis):
         """analyst_node should populate state['analysis'] on success."""
         with patch("src.agents.analyst.AnalystAgent") as MockAgent:
             mock_instance = MagicMock()

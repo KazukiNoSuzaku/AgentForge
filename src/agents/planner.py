@@ -17,7 +17,7 @@ from typing import Optional
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from src.config import AppConfig, get_config
-from src.models.schemas import ResearchPlan, SubQuestion, ThinkingStep
+from src.models.schemas import ResearchPlan, ThinkingStep
 from src.state import ResearchState
 from src.utils.llm import LLMManager, get_llm_manager
 
@@ -159,7 +159,6 @@ async def planner_node(state: ResearchState) -> dict:
         timestamp=datetime.now(),
     )
 
-    errors = []
     try:
         plan = await agent.plan(query)
         sub_questions = plan.sub_questions
@@ -168,8 +167,7 @@ async def planner_node(state: ResearchState) -> dict:
             agent="planner",
             action="plan_complete",
             content=(
-                f"Created {len(sub_questions)} sub-questions. "
-                f"Approach: {plan.research_approach}"
+                f"Created {len(sub_questions)} sub-questions. Approach: {plan.research_approach}"
             ),
             timestamp=datetime.now(),
         )

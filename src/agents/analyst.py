@@ -12,7 +12,6 @@ evidence into a structured analytical scaffold for the report.
 from __future__ import annotations
 
 import logging
-import uuid
 from datetime import datetime
 from typing import List, Optional
 

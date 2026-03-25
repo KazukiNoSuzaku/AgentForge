@@ -18,13 +18,9 @@ from src.agents.researcher import (
     evaluate_raw_results,
     parse_json_safely,
     researcher_node,
-    search_arxiv,
-    search_brave,
-    search_wikipedia,
 )
-from src.models.schemas import ResearchFinding, SourceType, SubQuestion
+from src.models.schemas import SourceType
 from src.state import create_initial_state
-
 
 # ---------------------------------------------------------------------------
 # Unit Tests: parse_json_safely
@@ -103,41 +99,46 @@ class TestEvaluateRawResults:
         mock_llm_manager.ainvoke.assert_not_awaited()
 
     @pytest.mark.asyncio
-    async def test_filters_low_relevance_findings(
-        self, mock_llm_manager, sample_sub_questions
-    ):
+    async def test_filters_low_relevance_findings(self, mock_llm_manager, sample_sub_questions):
         """Findings with relevance_score < 0.3 should be filtered out."""
         sq = sample_sub_questions[0]
 
         # LLM returns one high-relevance and one low-relevance finding
-        mock_response = json.dumps([
-            {
-                "sub_question_id": sq.id,
-                "sub_question": sq.question,
-                "source_type": "brave",
-                "title": "Relevant article",
-                "url": "https://example.com/relevant",
-                "content": "Very relevant content",
-                "relevance_score": 0.85,
-                "key_insights": ["Key insight"],
-                "metadata": {},
-            },
-            {
-                "sub_question_id": sq.id,
-                "sub_question": sq.question,
-                "source_type": "brave",
-                "title": "Irrelevant article",
-                "url": "https://example.com/irrelevant",
-                "content": "Barely related",
-                "relevance_score": 0.15,
-                "key_insights": [],
-                "metadata": {},
-            },
-        ])
+        mock_response = json.dumps(
+            [
+                {
+                    "sub_question_id": sq.id,
+                    "sub_question": sq.question,
+                    "source_type": "brave",
+                    "title": "Relevant article",
+                    "url": "https://example.com/relevant",
+                    "content": "Very relevant content",
+                    "relevance_score": 0.85,
+                    "key_insights": ["Key insight"],
+                    "metadata": {},
+                },
+                {
+                    "sub_question_id": sq.id,
+                    "sub_question": sq.question,
+                    "source_type": "brave",
+                    "title": "Irrelevant article",
+                    "url": "https://example.com/irrelevant",
+                    "content": "Barely related",
+                    "relevance_score": 0.15,
+                    "key_insights": [],
+                    "metadata": {},
+                },
+            ]
+        )
         mock_llm_manager.ainvoke.return_value = mock_response
 
         raw_results = [
-            {"_source_type": "brave", "title": "Relevant", "url": "https://example.com/relevant", "description": "content"}
+            {
+                "_source_type": "brave",
+                "title": "Relevant",
+                "url": "https://example.com/relevant",
+                "description": "content",
+            }
         ]
 
         findings = await evaluate_raw_results(sq, raw_results, mock_llm_manager)
@@ -165,20 +166,30 @@ class TestEvaluateRawResults:
     ):
         """Should strip ```json code blocks from the LLM response."""
         sq = sample_sub_questions[0]
-        json_content = json.dumps([{
-            "sub_question_id": sq.id,
-            "sub_question": sq.question,
-            "source_type": "wikipedia",
-            "title": "Test",
-            "url": "https://en.wikipedia.org/wiki/Test",
-            "content": "Test content",
-            "relevance_score": 0.75,
-            "key_insights": [],
-            "metadata": {},
-        }])
+        json_content = json.dumps(
+            [
+                {
+                    "sub_question_id": sq.id,
+                    "sub_question": sq.question,
+                    "source_type": "wikipedia",
+                    "title": "Test",
+                    "url": "https://en.wikipedia.org/wiki/Test",
+                    "content": "Test content",
+                    "relevance_score": 0.75,
+                    "key_insights": [],
+                    "metadata": {},
+                }
+            ]
+        )
         mock_llm_manager.ainvoke.return_value = f"```json\n{json_content}\n```"
 
-        raw_results = [{"_source_type": "wikipedia", "title": "Test", "url": "https://en.wikipedia.org/wiki/Test"}]
+        raw_results = [
+            {
+                "_source_type": "wikipedia",
+                "title": "Test",
+                "url": "https://en.wikipedia.org/wiki/Test",
+            }
+        ]
         findings = await evaluate_raw_results(sq, raw_results, mock_llm_manager)
 
         assert len(findings) == 1
@@ -198,11 +209,12 @@ class TestResearcherAgent:
         """research() should return (findings, errors) regardless of search failures."""
         sq = sample_sub_questions[0]
 
-        with patch("src.agents.researcher.search_brave", return_value=[]) as m_brave, \
-             patch("src.agents.researcher.search_arxiv", return_value=[]) as m_arxiv, \
-             patch("src.agents.researcher.search_wikipedia", return_value=[]) as m_wiki, \
-             patch("src.agents.researcher.evaluate_raw_results", return_value=[]) as m_eval:
-
+        with (
+            patch("src.agents.researcher.search_brave", return_value=[]),
+            patch("src.agents.researcher.search_arxiv", return_value=[]),
+            patch("src.agents.researcher.search_wikipedia", return_value=[]),
+            patch("src.agents.researcher.evaluate_raw_results", return_value=[]),
+        ):
             agent = ResearcherAgent(llm_manager=mock_llm_manager)
             findings, errors = await agent.research(sq)
 
@@ -217,11 +229,17 @@ class TestResearcherAgent:
         sq = sample_sub_questions[0]
 
         # Brave fails, arXiv succeeds, Wikipedia succeeds
-        with patch("src.agents.researcher.search_brave", side_effect=Exception("API error")), \
-             patch("src.agents.researcher.search_arxiv", return_value=[{"_source_type": "arxiv", "title": "Paper", "url": "http://arxiv.org/1"}]), \
-             patch("src.agents.researcher.search_wikipedia", return_value=[]), \
-             patch("src.agents.researcher.evaluate_raw_results", return_value=[sample_findings[1]]):
-
+        with (
+            patch("src.agents.researcher.search_brave", side_effect=Exception("API error")),
+            patch(
+                "src.agents.researcher.search_arxiv",
+                return_value=[
+                    {"_source_type": "arxiv", "title": "Paper", "url": "http://arxiv.org/1"}
+                ],
+            ),
+            patch("src.agents.researcher.search_wikipedia", return_value=[]),
+            patch("src.agents.researcher.evaluate_raw_results", return_value=[sample_findings[1]]),
+        ):
             agent = ResearcherAgent(llm_manager=mock_llm_manager)
             findings, errors = await agent.research(sq)
 
@@ -237,9 +255,7 @@ class TestResearcherAgent:
 
 class TestResearcherNode:
     @pytest.mark.asyncio
-    async def test_researcher_node_returns_findings_on_success(
-        self, sample_state, sample_findings
-    ):
+    async def test_researcher_node_returns_findings_on_success(self, sample_state, sample_findings):
         """researcher_node should accumulate findings from all sub-questions."""
         with patch("src.agents.researcher.ResearcherAgent") as MockAgent:
             mock_instance = MagicMock()
@@ -264,9 +280,7 @@ class TestResearcherNode:
         assert any("no sub-questions" in e for e in result["errors"])
 
     @pytest.mark.asyncio
-    async def test_researcher_node_runs_parallel_tasks(
-        self, sample_state, sample_findings
-    ):
+    async def test_researcher_node_runs_parallel_tasks(self, sample_state, sample_findings):
         """researcher_node should call research() once per sub-question."""
         with patch("src.agents.researcher.ResearcherAgent") as MockAgent:
             mock_instance = MagicMock()

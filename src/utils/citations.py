@@ -8,7 +8,7 @@ sections, and citation validation against the provided sources.
 from __future__ import annotations
 
 import re
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 from src.models.schemas import CitationEntry, ResearchFinding, SourceType
 
@@ -150,9 +150,7 @@ def extract_citation_numbers(text: str) -> List[int]:
     return sorted(set(int(r) for r in refs))
 
 
-def url_to_citation_number(
-    url: str, citation_map: Dict[str, CitationEntry]
-) -> Optional[int]:
+def url_to_citation_number(url: str, citation_map: Dict[str, CitationEntry]) -> Optional[int]:
     """
     Look up the citation number for a given URL.
 

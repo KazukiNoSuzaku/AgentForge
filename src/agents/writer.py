@@ -123,8 +123,10 @@ def _build_citation_reference(findings: List[ResearchFinding]) -> str:
     lines = ["Available citations (use [N] inline):"]
     for entry in sorted_entries:
         authors_str = (
-            f"{entry.authors[0]} et al." if len(entry.authors) > 1
-            else entry.authors[0] if entry.authors
+            f"{entry.authors[0]} et al."
+            if len(entry.authors) > 1
+            else entry.authors[0]
+            if entry.authors
             else ""
         )
         date_str = f" ({entry.published_date})" if entry.published_date else ""
@@ -158,13 +160,9 @@ def _format_analysis_for_writer(analysis: AnalysisResult) -> str:
     lines.append("### Claims (with confidence scores)")
     for claim in analysis.claims:
         conf_label = (
-            "HIGH" if claim.confidence >= 0.8
-            else "MEDIUM" if claim.confidence >= 0.6
-            else "LOW"
+            "HIGH" if claim.confidence >= 0.8 else "MEDIUM" if claim.confidence >= 0.6 else "LOW"
         )
-        lines.append(
-            f"- [{conf_label} {claim.confidence:.0%}] {claim.statement}"
-        )
+        lines.append(f"- [{conf_label} {claim.confidence:.0%}] {claim.statement}")
         if claim.supporting_sources:
             lines.append(f"  Supporting: {', '.join(claim.supporting_sources[:3])}")
         if claim.contradicting_sources:
@@ -227,9 +225,7 @@ class WriterAgent:
         citation_ref = _build_citation_reference(findings)
         analysis_text = _format_analysis_for_writer(analysis)
 
-        sq_text = "\n".join(
-            f"{i}. {sq.question}" for i, sq in enumerate(sub_questions, 1)
-        )
+        sq_text = "\n".join(f"{i}. {sq.question}" for i, sq in enumerate(sub_questions, 1))
 
         if is_revision:
             user_content = (
@@ -312,7 +308,8 @@ async def writer_node(state: ResearchState) -> dict:
         action="writing_report" if not is_revision else "revising_report",
         content=(
             f"{'Revising' if is_revision else 'Writing'} research report "
-            f"(revision {revision_count})" if is_revision
+            f"(revision {revision_count})"
+            if is_revision
             else "Writing initial research report draft"
         ),
         timestamp=datetime.now(),

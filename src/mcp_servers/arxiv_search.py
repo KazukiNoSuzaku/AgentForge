@@ -13,7 +13,7 @@ from __future__ import annotations
 import json
 import logging
 import sys
-from typing import List, Optional
+from typing import Optional
 
 import arxiv
 from dotenv import load_dotenv
@@ -191,7 +191,9 @@ async def search_papers_by_author(
                 "arxiv_id": paper.entry_id,
                 "title": paper.title,
                 "authors": [a.name for a in paper.authors],
-                "abstract": paper.summary[:500] + "..." if len(paper.summary) > 500 else paper.summary,
+                "abstract": paper.summary[:500] + "..."
+                if len(paper.summary) > 500
+                else paper.summary,
                 "published": paper.published.isoformat() if paper.published else None,
                 "url": paper.entry_id,
             }

@@ -11,7 +11,7 @@ The LLMManager class abstracts all LLM interactions, providing:
 from __future__ import annotations
 
 import logging
-from typing import Any, List, Optional, Type, TypeVar, Union
+from typing import List, Optional, Type, TypeVar
 
 from langchain_anthropic import ChatAnthropic
 from langchain_core.language_models import BaseChatModel
@@ -93,21 +93,23 @@ class LLMManager:
         Raises:
             RuntimeError: If both primary and fallback LLMs fail.
         """
+        primary_error = None
         try:
             response = await self.primary.ainvoke(messages)
             return response.content
         except Exception as primary_err:
+            primary_error = primary_err
             logger.warning(
                 "Primary LLM (%s) failed: %s. Trying fallback...",
                 self._config.anthropic_model,
-                primary_err,
+                primary_error,
             )
 
         if self.fallback is None:
             raise RuntimeError(
                 f"Primary LLM failed and no fallback is configured. "
                 f"Set OPENAI_API_KEY in your .env file. "
-                f"Primary error: {primary_err}"
+                f"Primary error: {primary_error}"
             )
 
         try:
@@ -117,7 +119,7 @@ class LLMManager:
         except Exception as fallback_err:
             raise RuntimeError(
                 f"Both LLMs failed. "
-                f"Primary ({self._config.anthropic_model}): {primary_err}. "
+                f"Primary ({self._config.anthropic_model}): {primary_error}. "
                 f"Fallback ({self._config.openai_model}): {fallback_err}"
             ) from fallback_err
 
@@ -142,24 +144,24 @@ class LLMManager:
         Raises:
             RuntimeError: If both primary and fallback LLMs fail.
         """
+        primary_error = None
         try:
             structured_llm = self.primary.with_structured_output(output_schema)
             result = await structured_llm.ainvoke(messages)
             if not isinstance(result, output_schema):
-                raise TypeError(
-                    f"Expected {output_schema.__name__}, got {type(result)}"
-                )
+                raise TypeError(f"Expected {output_schema.__name__}, got {type(result)}")
             return result
         except Exception as primary_err:
+            primary_error = primary_err
             logger.warning(
                 "Primary LLM structured output failed: %s. Trying fallback...",
-                primary_err,
+                primary_error,
             )
 
         if self.fallback is None:
             raise RuntimeError(
                 f"Primary LLM structured output failed and no fallback is configured. "
-                f"Error: {primary_err}"
+                f"Error: {primary_error}"
             )
 
         try:
@@ -170,14 +172,16 @@ class LLMManager:
         except Exception as fallback_err:
             raise RuntimeError(
                 f"Both LLMs failed for structured output. "
-                f"Primary: {primary_err}. Fallback: {fallback_err}"
+                f"Primary: {primary_error}. Fallback: {fallback_err}"
             ) from fallback_err
 
     def get_model_info(self) -> dict:
         """Return a dict with current model configuration for logging/display."""
         return {
             "primary_model": self._config.anthropic_model,
-            "fallback_model": self._config.openai_model if self._config.has_openai_fallback else "none",
+            "fallback_model": self._config.openai_model
+            if self._config.has_openai_fallback
+            else "none",
             "temperature": self._config.llm_temperature,
             "max_tokens": self._config.llm_max_tokens,
         }

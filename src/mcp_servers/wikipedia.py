@@ -13,7 +13,7 @@ from __future__ import annotations
 import json
 import logging
 import sys
-from typing import List, Optional
+from typing import Optional
 
 import wikipedia as wiki_api
 from dotenv import load_dotenv
@@ -166,7 +166,9 @@ async def get_article_sections(
                     "title": page.title,
                     "url": page.url,
                     "sections": page.sections,
-                    "introduction": page.content[:2000] + "..." if len(page.content) > 2000 else page.content,
+                    "introduction": page.content[:2000] + "..."
+                    if len(page.content) > 2000
+                    else page.content,
                 },
                 indent=2,
                 ensure_ascii=False,

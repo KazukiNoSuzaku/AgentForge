@@ -27,7 +27,6 @@ from mcp.client.stdio import stdio_client
 
 from src.config import AppConfig, get_config
 from src.models.schemas import (
-    RawSearchResult,
     ResearchFinding,
     SourceType,
     SubQuestion,
@@ -135,7 +134,7 @@ async def call_mcp_tool(
                         return result.content[0].text
                     return None
 
-    except asyncio.TimeoutError:
+    except TimeoutError:
         logger.warning("MCP tool '%s' timed out after %.0fs", tool_name, timeout)
         return None
     except Exception as exc:
@@ -358,9 +357,7 @@ async def evaluate_raw_results(
             json_err,
         )
 
-    logger.info(
-        "Researcher: '%s' → %d findings", sub_question.question, len(findings)
-    )
+    logger.info("Researcher: '%s' → %d findings", sub_question.question, len(findings))
     return findings
 
 
@@ -407,14 +404,16 @@ class ResearcherAgent:
         arxiv_task = search_arxiv(query, search_terms, self._config, self._mcp_dir)
         wiki_task = search_wikipedia(query, self._config, self._mcp_dir)
 
-        results = await asyncio.gather(
-            brave_task, arxiv_task, wiki_task, return_exceptions=True
-        )
+        results = await asyncio.gather(brave_task, arxiv_task, wiki_task, return_exceptions=True)
 
         brave_results, arxiv_results, wiki_results = results
         all_raw: List[Dict[str, Any]] = []
 
-        for name, result in [("Brave", brave_results), ("arXiv", arxiv_results), ("Wikipedia", wiki_results)]:
+        for name, result in [
+            ("Brave", brave_results),
+            ("arXiv", arxiv_results),
+            ("Wikipedia", wiki_results),
+        ]:
             if isinstance(result, Exception):
                 err = f"[{name}] search failed for '{query}': {result}"
                 logger.warning(err)
@@ -422,9 +421,7 @@ class ResearcherAgent:
             elif isinstance(result, list):
                 all_raw.extend(result)
 
-        logger.info(
-            "Researcher: '%s' — collected %d raw results", query, len(all_raw)
-        )
+        logger.info("Researcher: '%s' — collected %d raw results", query, len(all_raw))
 
         findings = await evaluate_raw_results(sub_question, all_raw, self._llm)
         return findings, errors

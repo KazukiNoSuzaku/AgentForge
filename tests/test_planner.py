@@ -12,7 +12,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from src.agents.planner import PlannerAgent, planner_node
-from src.models.schemas import ResearchPlan, SubQuestion
+from src.models.schemas import ResearchPlan
 from src.state import create_initial_state
 
 
@@ -20,9 +20,7 @@ class TestPlannerAgent:
     """Unit tests for PlannerAgent.plan()."""
 
     @pytest.mark.asyncio
-    async def test_plan_returns_research_plan(
-        self, mock_llm_manager, sample_research_plan
-    ):
+    async def test_plan_returns_research_plan(self, mock_llm_manager, sample_research_plan):
         """plan() should return a ResearchPlan with the LLM's structured output."""
         mock_llm_manager.ainvoke_structured.return_value = sample_research_plan
 
@@ -34,9 +32,7 @@ class TestPlannerAgent:
         mock_llm_manager.ainvoke_structured.assert_awaited_once()
 
     @pytest.mark.asyncio
-    async def test_plan_enforces_max_sub_questions(
-        self, mock_llm_manager, sample_research_plan
-    ):
+    async def test_plan_enforces_max_sub_questions(self, mock_llm_manager, sample_research_plan):
         """plan() must cap sub-questions at max_sub_questions config value."""
         # Return plan with 3 sub-questions, but config limits to 2
         mock_llm_manager.ainvoke_structured.return_value = sample_research_plan
@@ -52,9 +48,7 @@ class TestPlannerAgent:
         assert len(result.sub_questions) <= 2
 
     @pytest.mark.asyncio
-    async def test_plan_includes_search_terms(
-        self, mock_llm_manager, sample_research_plan
-    ):
+    async def test_plan_includes_search_terms(self, mock_llm_manager, sample_research_plan):
         """Each sub-question should include at least one search term."""
         mock_llm_manager.ainvoke_structured.return_value = sample_research_plan
 
@@ -67,9 +61,7 @@ class TestPlannerAgent:
             assert len(sq.search_terms) > 0, f"Sub-question {sq.id} has no search terms"
 
     @pytest.mark.asyncio
-    async def test_plan_sub_questions_have_unique_ids(
-        self, mock_llm_manager, sample_research_plan
-    ):
+    async def test_plan_sub_questions_have_unique_ids(self, mock_llm_manager, sample_research_plan):
         """All sub-question IDs must be unique."""
         mock_llm_manager.ainvoke_structured.return_value = sample_research_plan
 
@@ -103,7 +95,7 @@ class TestPlannerAgent:
 
         call_args = mock_llm_manager.ainvoke_structured.await_args
         messages = call_args[0][0]  # First positional arg
-        schema = call_args[0][1]    # Second positional arg
+        schema = call_args[0][1]  # Second positional arg
 
         assert any(isinstance(m, SystemMessage) for m in messages)
         assert any(isinstance(m, HumanMessage) for m in messages)
@@ -114,9 +106,7 @@ class TestPlannerNode:
     """Integration tests for the planner_node LangGraph interface."""
 
     @pytest.mark.asyncio
-    async def test_planner_node_returns_state_delta(
-        self, sample_query, sample_research_plan
-    ):
+    async def test_planner_node_returns_state_delta(self, sample_query, sample_research_plan):
         """planner_node should return a valid state delta dict."""
         state = create_initial_state(sample_query)
 
@@ -167,9 +157,7 @@ class TestPlannerNode:
         assert "Planner failed" in result["errors"][0]
 
     @pytest.mark.asyncio
-    async def test_planner_node_populates_thinking_steps(
-        self, sample_query, sample_research_plan
-    ):
+    async def test_planner_node_populates_thinking_steps(self, sample_query, sample_research_plan):
         """planner_node should produce at least two thinking steps."""
         state = create_initial_state(sample_query)
 

@@ -29,7 +29,7 @@ from src.models.schemas import (
     ThinkingStep,
 )
 from src.state import ResearchState
-from src.utils.citations import validate_citations, build_citation_map
+from src.utils.citations import build_citation_map, validate_citations
 from src.utils.llm import LLMManager, get_llm_manager
 
 logger = logging.getLogger(__name__)
@@ -160,13 +160,13 @@ class CriticAgent:
 
         # Format sub-questions for prompt
         sq_list = "\n".join(
-            f"  {i}. [{sq.id}] {sq.question}"
-            for i, sq in enumerate(sub_questions, 1)
+            f"  {i}. [{sq.id}] {sq.question}" for i, sq in enumerate(sub_questions, 1)
         )
 
         # Format top findings summary for cross-referencing
         findings_summary = "\n".join(
-            f"- [{f.source_type}] {f.title}: {f.content[:200]}..." if len(f.content) > 200
+            f"- [{f.source_type}] {f.title}: {f.content[:200]}..."
+            if len(f.content) > 200
             else f"- [{f.source_type}] {f.title}: {f.content}"
             for f in findings[:20]
         )

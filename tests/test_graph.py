@@ -7,14 +7,13 @@ and end-to-end pipeline integration with fully mocked agents.
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
 from src.graph import build_graph, get_graph, should_revise
 from src.models.schemas import CriticFeedback
 from src.state import ResearchState, create_initial_state
-
 
 # ---------------------------------------------------------------------------
 # Unit Tests: should_revise routing function
@@ -96,9 +95,7 @@ class TestGraphStructure:
         # LangGraph compiled graphs expose nodes via .nodes dict
         node_names = set(graph.nodes.keys())
         expected = {"planner", "researcher", "analyst", "writer", "critic"}
-        assert expected.issubset(node_names), (
-            f"Missing nodes: {expected - node_names}"
-        )
+        assert expected.issubset(node_names), f"Missing nodes: {expected - node_names}"
 
 
 # ---------------------------------------------------------------------------
@@ -115,8 +112,10 @@ class TestGraphEndToEnd:
 
     def _make_node_mock(self, return_value: dict):
         """Create an async mock function that returns the given state delta."""
+
         async def mock_node(state: ResearchState) -> dict:
             return return_value
+
         return mock_node
 
     @pytest.mark.asyncio
@@ -180,15 +179,16 @@ class TestGraphEndToEnd:
                 "errors": [],
             }
 
-        with patch("src.graph.planner_node", mock_planner), \
-             patch("src.graph.researcher_node", mock_researcher), \
-             patch("src.graph.analyst_node", mock_analyst), \
-             patch("src.graph.writer_node", mock_writer), \
-             patch("src.graph.critic_node", mock_critic):
-
+        with (
+            patch("src.graph.planner_node", mock_planner),
+            patch("src.graph.researcher_node", mock_researcher),
+            patch("src.graph.analyst_node", mock_analyst),
+            patch("src.graph.writer_node", mock_writer),
+            patch("src.graph.critic_node", mock_critic),
+        ):
             graph = build_graph()
             initial_state = create_initial_state(sample_query)
-            final_state = await graph.ainvoke(initial_state, config={"recursion_limit": 15})
+            await graph.ainvoke(initial_state, config={"recursion_limit": 15})
 
         assert "planner" in call_order
         assert "researcher" in call_order
@@ -244,7 +244,8 @@ class TestGraphEndToEnd:
             call_order.append("writer")
             return {
                 "draft_report": sample_draft_report,
-                "revision_count": state.get("revision_count", 0) + (1 if state.get("critic_feedback") else 0),
+                "revision_count": state.get("revision_count", 0)
+                + (1 if state.get("critic_feedback") else 0),
                 "agent_statuses": {"writer": "done"},
                 "thinking_steps": [],
                 "errors": [],
@@ -271,17 +272,20 @@ class TestGraphEndToEnd:
                 "errors": [],
             }
 
-        with patch("src.graph.planner_node", mock_planner), \
-             patch("src.graph.researcher_node", mock_researcher), \
-             patch("src.graph.analyst_node", mock_analyst), \
-             patch("src.graph.writer_node", mock_writer), \
-             patch("src.graph.critic_node", mock_critic):
-
+        with (
+            patch("src.graph.planner_node", mock_planner),
+            patch("src.graph.researcher_node", mock_researcher),
+            patch("src.graph.analyst_node", mock_analyst),
+            patch("src.graph.writer_node", mock_writer),
+            patch("src.graph.critic_node", mock_critic),
+        ):
             graph = build_graph()
             initial_state = create_initial_state(sample_query)
-            final_state = await graph.ainvoke(initial_state, config={"recursion_limit": 20})
+            await graph.ainvoke(initial_state, config={"recursion_limit": 20})
 
-        assert call_order.count("writer") == 2, "Expected writer to run twice (1 draft + 1 revision)"
+        assert call_order.count("writer") == 2, (
+            "Expected writer to run twice (1 draft + 1 revision)"
+        )
         assert call_order.count("critic") == 2, "Expected critic to run twice"
 
     @pytest.mark.asyncio
@@ -295,36 +299,62 @@ class TestGraphEndToEnd:
         sample_critic_feedback_pass,
     ):
         """The final state should contain a non-empty final_report."""
+
         async def mock_planner(state):
-            return {"sub_questions": sample_sub_questions, "research_plan": "plan",
-                    "agent_statuses": {"planner": "done"}, "thinking_steps": [], "errors": []}
+            return {
+                "sub_questions": sample_sub_questions,
+                "research_plan": "plan",
+                "agent_statuses": {"planner": "done"},
+                "thinking_steps": [],
+                "errors": [],
+            }
 
         async def mock_researcher(state):
-            return {"research_findings": sample_findings,
-                    "agent_statuses": {"researcher": "done"}, "thinking_steps": [], "errors": []}
+            return {
+                "research_findings": sample_findings,
+                "agent_statuses": {"researcher": "done"},
+                "thinking_steps": [],
+                "errors": [],
+            }
 
         async def mock_analyst(state):
-            return {"analysis": sample_analysis,
-                    "agent_statuses": {"analyst": "done"}, "thinking_steps": [], "errors": []}
+            return {
+                "analysis": sample_analysis,
+                "agent_statuses": {"analyst": "done"},
+                "thinking_steps": [],
+                "errors": [],
+            }
 
         async def mock_writer(state):
-            return {"draft_report": sample_draft_report, "revision_count": 0,
-                    "agent_statuses": {"writer": "done"}, "thinking_steps": [], "errors": []}
+            return {
+                "draft_report": sample_draft_report,
+                "revision_count": 0,
+                "agent_statuses": {"writer": "done"},
+                "thinking_steps": [],
+                "errors": [],
+            }
 
         async def mock_critic(state):
-            return {"critic_feedback": sample_critic_feedback_pass,
-                    "final_report": sample_draft_report,
-                    "agent_statuses": {"critic": "done"}, "thinking_steps": [], "errors": []}
+            return {
+                "critic_feedback": sample_critic_feedback_pass,
+                "final_report": sample_draft_report,
+                "agent_statuses": {"critic": "done"},
+                "thinking_steps": [],
+                "errors": [],
+            }
 
-        with patch("src.graph.planner_node", mock_planner), \
-             patch("src.graph.researcher_node", mock_researcher), \
-             patch("src.graph.analyst_node", mock_analyst), \
-             patch("src.graph.writer_node", mock_writer), \
-             patch("src.graph.critic_node", mock_critic):
-
+        with (
+            patch("src.graph.planner_node", mock_planner),
+            patch("src.graph.researcher_node", mock_researcher),
+            patch("src.graph.analyst_node", mock_analyst),
+            patch("src.graph.writer_node", mock_writer),
+            patch("src.graph.critic_node", mock_critic),
+        ):
             graph = build_graph()
             initial_state = create_initial_state(sample_query)
             final_state = await graph.ainvoke(initial_state, config={"recursion_limit": 15})
 
         assert final_state.get("final_report"), "final_report should be non-empty"
-        assert "## Bibliography" in final_state["final_report"] or "#" in final_state["final_report"]
+        assert (
+            "## Bibliography" in final_state["final_report"] or "#" in final_state["final_report"]
+        )

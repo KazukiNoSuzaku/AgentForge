@@ -2,11 +2,12 @@
 
 > **A production-grade multi-agent research engine** powered by LangGraph, MCP (Model Context Protocol), and Anthropic Claude. Ask any complex research question and receive a cited, peer-reviewed-quality report — automatically.
 
+[![CI](https://github.com/KazukiNoSuzaku/AgentForge/actions/workflows/ci.yml/badge.svg)](https://github.com/KazukiNoSuzaku/AgentForge/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/KazukiNoSuzaku/AgentForge/branch/main/graph/badge.svg)](https://codecov.io/gh/KazukiNoSuzaku/AgentForge)
 ![Python](https://img.shields.io/badge/Python-3.11+-blue?logo=python)
 ![LangGraph](https://img.shields.io/badge/LangGraph-0.2+-orange)
 ![MCP](https://img.shields.io/badge/MCP-1.1+-green)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
-![Tests](https://img.shields.io/badge/Tests-pytest-purple)
 
 ---
 
@@ -313,8 +314,9 @@ pytest tests/ -v --cov=src --cov-report=html
 # Run a specific test module
 pytest tests/test_planner.py -v
 
-# Lint (if ruff is installed)
+# Lint and format
 ruff check src/ tests/
+ruff format src/ tests/
 ```
 
 ### Adding a new data source

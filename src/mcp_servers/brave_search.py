@@ -76,8 +76,7 @@ async def search_web(
     api_key = os.getenv("BRAVE_SEARCH_API_KEY")
     if not api_key:
         raise ValueError(
-            "BRAVE_SEARCH_API_KEY is not set. "
-            "Get a free key at https://brave.com/search/api/"
+            "BRAVE_SEARCH_API_KEY is not set. Get a free key at https://brave.com/search/api/"
         )
 
     params: Dict[str, Any] = {

@@ -8,12 +8,10 @@ and follow production data shapes exactly.
 
 from __future__ import annotations
 
-from datetime import datetime
-from typing import AsyncIterator, List
-from unittest.mock import AsyncMock, MagicMock, patch
+from typing import List
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-import pytest_asyncio
 
 from src.models.schemas import (
     AnalysisResult,
@@ -23,10 +21,8 @@ from src.models.schemas import (
     ResearchPlan,
     SourceType,
     SubQuestion,
-    ThinkingStep,
 )
 from src.state import ResearchState, create_initial_state
-
 
 # ---------------------------------------------------------------------------
 # pytest-asyncio configuration
@@ -66,7 +62,11 @@ def sample_sub_questions() -> List[SubQuestion]:
             id="sq_3",
             question="How does China regulate AI systems?",
             priority=3,
-            search_terms=["China AI regulation", "algorithm recommendation rules", "generative AI China"],
+            search_terms=[
+                "China AI regulation",
+                "algorithm recommendation rules",
+                "generative AI China",
+            ],
             rationale="China has introduced sector-specific AI rules distinct from Western approaches.",
         ),
     ]
@@ -234,7 +234,9 @@ def sample_critic_feedback_pass() -> CriticFeedback:
 def sample_critic_feedback_fail() -> CriticFeedback:
     return CriticFeedback(
         quality_score=0.62,
-        unsupported_claims=["Claim about China having the strictest penalties is not supported by any provided source"],
+        unsupported_claims=[
+            "Claim about China having the strictest penalties is not supported by any provided source"
+        ],
         missing_perspectives=["Civil society and advocacy group perspectives are absent"],
         logical_gaps=["The conclusion jumps to policy recommendations without sufficient evidence"],
         citation_issues=["[4] is cited in text but has no bibliography entry"],
