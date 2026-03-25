@@ -23,8 +23,6 @@ from dotenv import load_dotenv
 from rich.console import Console
 from rich.markdown import Markdown
 from rich.panel import Panel
-from rich.progress import Progress, SpinnerColumn, TextColumn
-from rich.table import Table
 
 # Load .env before importing anything that reads config
 load_dotenv()
@@ -100,17 +98,16 @@ def print_agent_update(node_name: str, node_output: dict, verbose: bool) -> None
     elif node_name == "writer":
         draft = node_output.get("draft_report", "")
         rev = node_output.get("revision_count", 0)
-        console.print(
-            f"{'Revised' if rev > 0 else 'Drafted'} report "
-            f"({len(draft):,} chars)"
-        )
+        console.print(f"{'Revised' if rev > 0 else 'Drafted'} report ({len(draft):,} chars)")
 
     elif node_name == "critic":
         feedback = node_output.get("critic_feedback")
         if feedback:
             color_score = (
-                "green" if feedback.quality_score >= 0.75
-                else "yellow" if feedback.quality_score >= 0.5
+                "green"
+                if feedback.quality_score >= 0.75
+                else "yellow"
+                if feedback.quality_score >= 0.5
                 else "red"
             )
             console.print(

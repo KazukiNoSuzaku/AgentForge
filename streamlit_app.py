@@ -16,7 +16,7 @@ import threading
 import time
 from datetime import datetime
 from queue import Empty, Queue
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 import streamlit as st
 from dotenv import load_dotenv
@@ -38,7 +38,6 @@ st.set_page_config(
 # Imports (after env load)
 # ---------------------------------------------------------------------------
 
-from src.config import get_config
 from src.graph import build_graph
 from src.models.schemas import AgentStatus
 from src.state import create_initial_state
@@ -140,9 +139,19 @@ def init_session_state() -> None:
 def reset_session() -> None:
     """Reset all pipeline state for a new research run."""
     keys_to_reset = [
-        "running", "completed", "agent_statuses", "thinking_steps",
-        "final_report", "findings_count", "claims_count", "quality_score",
-        "revision_count", "errors", "current_agent", "start_time", "sub_questions",
+        "running",
+        "completed",
+        "agent_statuses",
+        "thinking_steps",
+        "final_report",
+        "findings_count",
+        "claims_count",
+        "quality_score",
+        "revision_count",
+        "errors",
+        "current_agent",
+        "start_time",
+        "sub_questions",
     ]
     for key in keys_to_reset:
         if key in st.session_state:
@@ -259,8 +268,11 @@ def render_thinking_steps(steps: list) -> None:
         with st.expander(f"🧠 Agent Thinking Steps ({len(steps)} steps)", expanded=False):
             for step in steps:
                 agent_color = {
-                    "planner": "blue", "researcher": "green",
-                    "analyst": "orange", "writer": "violet", "critic": "red",
+                    "planner": "blue",
+                    "researcher": "green",
+                    "analyst": "orange",
+                    "writer": "violet",
+                    "critic": "red",
                 }.get(step.agent, "gray")
 
                 st.markdown(
@@ -335,9 +347,7 @@ def main() -> None:
     # Header
     # ------------------------------------------------------------------ #
     st.title("🔬 AgentForge")
-    st.markdown(
-        "_A production-grade multi-agent research engine powered by LangGraph + MCP_"
-    )
+    st.markdown("_A production-grade multi-agent research engine powered by LangGraph + MCP_")
     st.markdown("---")
 
     # ------------------------------------------------------------------ #

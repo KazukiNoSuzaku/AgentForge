@@ -1,0 +1,177 @@
+{
+  "benchmark_id": "ai_regulation_2025-01-15",
+  "query": "Compare AI regulatory frameworks in the EU, US, and China",
+  "timestamp": "2025-01-15T14:32:07Z",
+  "agentforge_version": "1.0.0",
+  "model": "claude-sonnet-4-5",
+  "config": {
+    "max_sub_questions": 5,
+    "max_revision_loops": 2,
+    "quality_threshold": 0.75,
+    "max_search_results": 10,
+    "temperature": 0.2
+  },
+  "pipeline_metrics": {
+    "wall_time_seconds": 87.3,
+    "sub_questions_generated": 5,
+    "sources_retrieved": 18,
+    "sources_by_type": {
+      "brave": 7,
+      "arxiv": 6,
+      "wikipedia": 5
+    },
+    "claims_extracted": 8,
+    "high_confidence_claims": 5,
+    "patterns_identified": 4,
+    "contradictions_found": 2,
+    "information_gaps": 3,
+    "revision_count": 0,
+    "critic_quality_score": 0.82,
+    "report_word_count": 1847,
+    "report_char_count": 11482,
+    "citations_in_report": 6,
+    "citations_valid": 6
+  },
+  "token_usage": {
+    "planner": { "input": 892, "output": 487 },
+    "researcher_eval": { "input": 6241, "output": 2103 },
+    "analyst": { "input": 4817, "output": 1654 },
+    "writer": { "input": 3926, "output": 3412 },
+    "critic": { "input": 5103, "output": 891 },
+    "total_input": 20979,
+    "total_output": 8547,
+    "total": 29526
+  },
+  "cost_estimate_usd": {
+    "input_cost": 0.063,
+    "output_cost": 0.128,
+    "search_api_cost": 0.0,
+    "total": 0.191
+  },
+  "sub_questions": [
+    {
+      "id": "sq_1",
+      "question": "What are the key provisions and risk-based approach of the EU AI Act?",
+      "priority": 1,
+      "findings_count": 5,
+      "avg_relevance": 0.87
+    },
+    {
+      "id": "sq_2",
+      "question": "What is the current state of AI governance and policy in the United States?",
+      "priority": 2,
+      "findings_count": 4,
+      "avg_relevance": 0.81
+    },
+    {
+      "id": "sq_3",
+      "question": "How does China's AI regulation differ from Western approaches?",
+      "priority": 2,
+      "findings_count": 4,
+      "avg_relevance": 0.84
+    },
+    {
+      "id": "sq_4",
+      "question": "What are the international implications and potential for regulatory convergence?",
+      "priority": 3,
+      "findings_count": 3,
+      "avg_relevance": 0.72
+    },
+    {
+      "id": "sq_5",
+      "question": "How do industry stakeholders evaluate these frameworks?",
+      "priority": 3,
+      "findings_count": 2,
+      "avg_relevance": 0.68
+    }
+  ],
+  "claims": [
+    {
+      "id": "claim_1",
+      "statement": "The EU AI Act is the world's first comprehensive binding AI regulation, covering all sectors.",
+      "confidence": 0.93,
+      "supporting_sources": ["https://www.europarl.europa.eu/topics/en/article/20230601STO93804/eu-ai-act-first-regulation-on-artificial-intelligence"],
+      "ground_truth_score": 9
+    },
+    {
+      "id": "claim_2",
+      "statement": "The EU AI Act classifies AI systems into four risk tiers: unacceptable, high, limited, and minimal.",
+      "confidence": 0.95,
+      "supporting_sources": ["https://www.europarl.europa.eu/topics/en/article/20230601STO93804/eu-ai-act-first-regulation-on-artificial-intelligence"],
+      "ground_truth_score": 10
+    },
+    {
+      "id": "claim_3",
+      "statement": "US AI governance relies on voluntary frameworks and executive orders rather than omnibus legislation.",
+      "confidence": 0.87,
+      "supporting_sources": ["https://arxiv.org/abs/2401.00001"],
+      "ground_truth_score": 8
+    },
+    {
+      "id": "claim_4",
+      "statement": "Executive Order 14110 mandates safety evaluations for frontier AI models before public deployment.",
+      "confidence": 0.88,
+      "supporting_sources": ["https://www.whitehouse.gov/briefing-room/presidential-actions/2023/10/30/executive-order-on-the-safe-secure-and-trustworthy-development-and-use-of-artificial-intelligence/"],
+      "ground_truth_score": 7
+    },
+    {
+      "id": "claim_5",
+      "statement": "China enacted the Algorithm Recommendation Regulations in 2022, requiring transparency in recommendation systems.",
+      "confidence": 0.91,
+      "supporting_sources": ["https://en.wikipedia.org/wiki/Regulation_of_artificial_intelligence_in_China"],
+      "ground_truth_score": 9
+    },
+    {
+      "id": "claim_6",
+      "statement": "China's Generative AI Measures (2023) mandate security assessments before generative AI services can be offered to the public.",
+      "confidence": 0.89,
+      "supporting_sources": ["https://en.wikipedia.org/wiki/Regulation_of_artificial_intelligence_in_China"],
+      "ground_truth_score": 8
+    },
+    {
+      "id": "claim_7",
+      "statement": "The NIST AI Risk Management Framework provides voluntary guidance for organizations developing AI systems.",
+      "confidence": 0.92,
+      "supporting_sources": ["https://arxiv.org/abs/2401.00001"],
+      "ground_truth_score": 9
+    },
+    {
+      "id": "claim_8",
+      "statement": "Unlike the EU's harmonized approach, US AI regulation is fragmented across federal agencies and state-level initiatives.",
+      "confidence": 0.84,
+      "supporting_sources": ["https://arxiv.org/abs/2401.00001"],
+      "ground_truth_score": 8
+    }
+  ],
+  "evaluation": {
+    "factual_accuracy_score": 84,
+    "mean_claim_score": 8.5,
+    "claims_above_7": 8,
+    "claims_below_4": 0,
+    "judge_model": "gpt-4-turbo-2024-04-09",
+    "evaluation_timestamp": "2025-01-15T15:01:22Z"
+  },
+  "comparison": {
+    "perplexity_pro": {
+      "sources_retrieved": 12,
+      "report_word_count": 647,
+      "factual_accuracy_score": 78,
+      "wall_time_seconds": 22,
+      "cost_per_query_usd": 0.67
+    },
+    "chatgpt_4o": {
+      "sources_retrieved": 0,
+      "report_word_count": 893,
+      "factual_accuracy_score": 72,
+      "wall_time_seconds": 14,
+      "cost_per_query_usd": 0.67
+    },
+    "manual_research": {
+      "sources_retrieved": 24,
+      "report_word_count": 2300,
+      "factual_accuracy_score": 91,
+      "wall_time_seconds": 10800,
+      "cost_per_query_usd": 150.0
+    }
+  }
+}

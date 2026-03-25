@@ -40,6 +40,11 @@ ignore = [
     "RUF001", # ambiguous unicode chars — en-dashes in agent prompts are intentional
 ]
 
+[tool.ruff.lint.per-file-ignores]
+"benchmarks/*.py" = ["E402"]  # imports after load_dotenv() are intentional
+"main.py" = ["E402"]
+"streamlit_app.py" = ["E402", "SIM102"]
+
 [tool.ruff.lint.isort]
 known-first-party = ["src"]
 
