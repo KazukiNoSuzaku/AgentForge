@@ -182,9 +182,21 @@ def save_report(report: str, output_path: Path) -> None:
     Args:
         report: Markdown report content.
         output_path: Destination file path.
+
+    Raises:
+        ValueError: If output_path resolves outside the current working directory.
     """
-    output_path.write_text(report, encoding="utf-8")
-    console.print(f"\n[green]Report saved to:[/green] {output_path.resolve()}")
+    resolved = output_path.resolve()
+    cwd = Path.cwd().resolve()
+    if not str(resolved).startswith(str(cwd)):
+        console.print(
+            f"\n[red bold]Error:[/red bold] Output path must be within the current directory "
+            f"({cwd}). Got: {resolved}"
+        )
+        sys.exit(1)
+    resolved.parent.mkdir(parents=True, exist_ok=True)
+    resolved.write_text(report, encoding="utf-8")
+    console.print(f"\n[green]Report saved to:[/green] {resolved}")
 
 
 def main() -> None:

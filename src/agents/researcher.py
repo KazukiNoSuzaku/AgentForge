@@ -37,6 +37,24 @@ from src.utils.llm import LLMManager, get_llm_manager
 
 logger = logging.getLogger(__name__)
 
+# Environment variables forwarded to MCP subprocess — explicit allowlist so
+# LLM API keys (ANTHROPIC_API_KEY, OPENAI_API_KEY) are never exposed to child
+# processes and their transitive dependencies.
+_MCP_ALLOWED_ENV_VARS = frozenset(
+    [
+        "PATH",
+        "HOME",
+        "USERPROFILE",  # Windows equivalent of HOME
+        "SYSTEMROOT",  # Windows: required by some system libraries
+        "TEMP",
+        "TMP",
+        "PYTHONPATH",
+        "PYTHONHOME",
+        "VIRTUAL_ENV",
+        "BRAVE_SEARCH_API_KEY",  # Only key MCP search servers actually need
+    ]
+)
+
 # ---------------------------------------------------------------------------
 # System Prompt
 # ---------------------------------------------------------------------------
@@ -107,7 +125,10 @@ async def call_mcp_tool(
     Returns:
         The tool's text output, or None on failure.
     """
-    env = {**os.environ}  # Pass through all env vars (including API keys)
+    # Only forward env vars the MCP servers actually need.
+    # Never forward LLM keys (Anthropic, OpenAI) — they belong to the main
+    # process only. A compromised MCP dependency cannot read them this way.
+    env = {k: v for k, v in os.environ.items() if k in _MCP_ALLOWED_ENV_VARS}
 
     server_params = StdioServerParameters(
         command=sys.executable,  # Use the same Python interpreter

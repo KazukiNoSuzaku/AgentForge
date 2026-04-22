@@ -10,6 +10,7 @@ Run standalone for testing:
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import sys
@@ -22,6 +23,11 @@ from mcp.server.fastmcp import FastMCP
 load_dotenv()
 
 logger = logging.getLogger(__name__)
+
+# wikipedia.set_lang() mutates a module-level global. Without a lock,
+# concurrent tool calls with different language parameters race on that
+# shared state and one request ends up using the wrong language.
+_lang_lock = asyncio.Lock()
 
 mcp = FastMCP(
     name="Wikipedia",
@@ -55,8 +61,9 @@ async def search_wikipedia(
     Returns:
         JSON string with a list of matching article titles.
     """
-    wiki_api.set_lang(language)
-    results = wiki_api.search(query, results=num_results)
+    async with _lang_lock:
+        wiki_api.set_lang(language)
+        results = wiki_api.search(query, results=min(max(num_results, 1), 20))
     logger.info("Wikipedia search: '%s' → %d titles", query, len(results))
     return json.dumps({"query": query, "results": results}, ensure_ascii=False)
 
@@ -80,62 +87,63 @@ async def get_article_summary(
     Returns:
         JSON string with article title, url, summary, and categories.
     """
-    wiki_api.set_lang(language)
+    async with _lang_lock:
+        wiki_api.set_lang(language)
 
-    try:
-        page = wiki_api.page(title, auto_suggest=True, preload=False)
-        summary = wiki_api.summary(title, sentences=sentences, auto_suggest=True)
-
-        return json.dumps(
-            {
-                "title": page.title,
-                "url": page.url,
-                "summary": summary,
-                "categories": page.categories[:15],
-                "references": page.references[:10],
-            },
-            indent=2,
-            ensure_ascii=False,
-        )
-
-    except wiki_api.DisambiguationError as e:
-        # Disambiguation — pick the first option and retry
-        if not e.options:
-            return json.dumps({"error": f"Disambiguation for '{title}' with no options"})
-        logger.info("Disambiguation for '%s': trying '%s'", title, e.options[0])
-        first_option = e.options[0]
         try:
-            page = wiki_api.page(first_option, auto_suggest=False)
-            summary = wiki_api.summary(first_option, sentences=sentences, auto_suggest=False)
+            page = wiki_api.page(title, auto_suggest=True, preload=False)
+            summary = wiki_api.summary(title, sentences=sentences, auto_suggest=True)
+
             return json.dumps(
                 {
                     "title": page.title,
                     "url": page.url,
                     "summary": summary,
                     "categories": page.categories[:15],
-                    "disambiguation_note": (
-                        f"'{title}' was ambiguous; retrieved '{first_option}' instead. "
-                        f"Other options: {e.options[1:5]}"
-                    ),
+                    "references": page.references[:10],
                 },
                 indent=2,
                 ensure_ascii=False,
             )
-        except Exception as inner_err:
+
+        except wiki_api.DisambiguationError as e:
+            # Disambiguation — pick the first option and retry
+            if not e.options:
+                return json.dumps({"error": f"Disambiguation for '{title}' with no options"})
+            logger.info("Disambiguation for '%s': trying '%s'", title, e.options[0])
+            first_option = e.options[0]
+            try:
+                page = wiki_api.page(first_option, auto_suggest=False)
+                summary = wiki_api.summary(first_option, sentences=sentences, auto_suggest=False)
+                return json.dumps(
+                    {
+                        "title": page.title,
+                        "url": page.url,
+                        "summary": summary,
+                        "categories": page.categories[:15],
+                        "disambiguation_note": (
+                            f"'{title}' was ambiguous; retrieved '{first_option}' instead. "
+                            f"Other options: {e.options[1:5]}"
+                        ),
+                    },
+                    indent=2,
+                    ensure_ascii=False,
+                )
+            except Exception as inner_err:
+                return json.dumps(
+                    {"error": f"Could not resolve disambiguation for '{title}': {inner_err}"}
+                )
+
+        except wiki_api.PageError:
             return json.dumps(
-                {"error": f"Could not resolve disambiguation for '{title}': {inner_err}"}
+                {
+                    "error": f"Wikipedia page '{title}' not found.",
+                    "suggestion": "Try search_wikipedia first to find the correct title.",
+                }
             )
 
-    except wiki_api.PageError:
-        return json.dumps(
-            {
-                "error": f"Wikipedia page '{title}' not found.",
-                "suggestion": "Try search_wikipedia first to find the correct title.",
-            }
-        )
-
-    except Exception as err:
-        return json.dumps({"error": f"Wikipedia lookup failed: {err}"})
+        except Exception as err:
+            return json.dumps({"error": f"Wikipedia lookup failed: {err}"})
 
 
 @mcp.tool()
@@ -156,10 +164,11 @@ async def get_article_sections(
     Returns:
         JSON string with section content or table of contents.
     """
-    wiki_api.set_lang(language)
+    async with _lang_lock:
+        wiki_api.set_lang(language)
 
     try:
-        page = wiki_api.page(title, auto_suggest=True, preload=True)
+        page = wiki_api.page(title, auto_suggest=True, preload=False)
 
         if section_title is None:
             # Return TOC + introduction
@@ -218,7 +227,8 @@ async def get_article_references(
     Returns:
         JSON string with a list of external reference URLs.
     """
-    wiki_api.set_lang(language)
+    async with _lang_lock:
+        wiki_api.set_lang(language)
 
     try:
         page = wiki_api.page(title, auto_suggest=True)
